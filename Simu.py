@@ -205,3 +205,4 @@ if (bandera == 1):  #si el csv tiene menos de 10
 
 
         
+print ("mati maricon")
