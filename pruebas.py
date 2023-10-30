@@ -30,7 +30,6 @@ while (listo) :
         print (f"Tiempo: {tiem}")
         entra = listo.pop(0)
         print (f"El proceso {entra.id} entro en ejecucion")
-        resg= entra.ti
         resta = entra.ti - 2
         if (resta <= 0): 
             tiem = tiem + 1
