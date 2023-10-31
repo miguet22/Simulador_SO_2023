@@ -47,13 +47,7 @@ def cargar_csv():
 
                 # Recorrer el DataFrame y agregar IDs de procesos a la lista de nuevos procesos
                 for index, row in df_ordenado.iterrows():
-                    id = str(row['ID'])
-                    ta = int(row['TA'])
-                    ti = int(row['TI'])
-                    tam = int(row['TAM'])
-                    proceso = Proceso (id,ta,ti,tam)
-                    nuevo.append(proceso)
-                    
+                    nuevo.append(row['ID'])
 
         except Exception as e:
             print(f"Error al cargar el archivo: {e}")
@@ -71,7 +65,6 @@ root.title("Cargar archivo CSV ")
 
 # Botón para abrir el buscador de archivos
 button = tk.Button(root, text="Cargar archivo CSV ", command=cargar_csv)
-print (nuevo)
 button.pack(pady=20)
 
 # Iniciar el bucle principal de tkinter
@@ -97,7 +90,7 @@ if (bandera == 1):  #si el csv tiene menos de 10
     cont = 0 
     
     
-    while (cont < num_filas):   # para procesar todos los procesos del csv  CICLO PRINCIPAL
+    while (list < num_filas):   # para procesar todos los procesos del csv  CICLO PRINCIPAL
 
         
         procesos_carg = []
