@@ -71,89 +71,85 @@ list_termi = []
 list_ejec = []
 gant = []
  
-tiempo= list_nuevo2[0].ta
-agarre = "no"
-while (len (list_termi)< len (list_nuevo2)):
-    while (len (list_listo)<6):
-        if agarre != "si":
-            a_listo = list_nuevo[0]
-        if (tiempo == a_listo.ta):  #si mi proceso que arribo, no tiene un ta correspondiente al quantum deberia darle prioridad a otro
-            if agarre != "si":
-                a_listo = list_nuevo.pop(0)
-            q= 0
-            ti_aux = a_listo.ti
 
-            while (q<2 and ti_aux >0):
-                ti_aux= ti_aux-1
-                a_listo.ti = ti_aux
-                gant.insert (tiempo,a_listo)
-                q = q+1
-                
-            
-            if (ti_aux == 0):
-                tiempo = tiempo+q
-                print (f"Tiempo {tiempo}, {a_listo.id} termino su ejecucion, se va a cola de terminados")
-                list_termi.append(a_listo)
-                for j in range (0,len(list_nuevo2)):  #lo saco de nuevo
-                    if (list_nuevo2[j].id == a_listo.id):
-                        list_nuevo2.pop (j)
-                        break
-            else:
-                a_listo.ti = ti_aux
-                list_listo.append (a_listo)
-                print (f"El proceso {a_listo.id}, todavia no termino de ejecutarse, le faltan {ti_aux} unidades de tiempo")
-                tiempo = tiempo + q
-               
-        else:
-            hago = 1
-            print (tiempo)
-            
-            print(acumulador_ti)
-            for m in range (tiempo,acumulador_ti,2):    #tengo que buscar en la cola de nuevos algun proceso que si tenga un ta = actual tiempo de arribo
-                for i in range (0,len(list_nuevo2)):
-                    print (f"tiempos de arribo {list_nuevo2[i].ta}")
-                    if (m == list_nuevo2[i].ta) :
-                        print (f"agarre{list_nuevo2[i].id}")
-                        a_listo = list_nuevo2[i]
-                        hago = 0  #significa que NO HAGO lo de abajo, ya que en la cola hay alguno que tenga un ta igual mi q actual"""
-                        break
-            
-            if (hago ==1):
 
-                while (len (list_termi)< len (list_nuevo2)):
-                    if (len(list_nuevo) > 0):
-                        a_listo = list_nuevo.pop(0)
-                    q= 0
-                    ti_aux = a_listo.ti
+if bandera ==1:
+    while (len (list_termi) != len(list_nuevo2)):
+        if (len(list_listo) <6):
+            if (len(list_nuevo)!=0):
+                entra_a_listo = list_nuevo.pop(0)
+                id= entra_a_listo.id
+                ta = entra_a_listo.ta
+                ti = entra_a_listo.ti
+                tam= entra_a_listo.tam
+                proceso = Proceso(id,ta,ti,tam)
+                list_listo.append(proceso)
+                print (f"proceso {proceso.id} agregado a cola de listos")
+            else:  
+                tiempo = list_listo[0]
+                while (len(list_termi) != len (list_nuevo2)):
+                    prox = list_listo[1]
+                    proceso_cargar = list_listo.pop (0)
+                    hago = 1
+                    if (proceso_cargar.ta == tiempo): #perfecto damos prioridad
+                        q = tiempo  #tiempo es mi reloj general
+                        ti_aux = proceso_cargar.ti
+                        if ((q+1) != prox.ta): # si corro un tiempo y en ese tiempo llegue a un proceso que tiene ese ta, solamente ejecuto un tiemp
+                            quantum = 0  #es el quantum de round robin
+                            while (ti_aux> 0 and quantum !=2):
+                                quantum = quantum+1
+                                ti_aux = ti_aux - 1
+                                proceso_cargar.ti = ti_aux
+                                gant.insert (q,proceso_cargar)
+                                q=q+1
+                                
 
-                    while (q<2 and ti_aux >0):
-                        ti_aux= ti_aux-1
-                        a_listo.ti = ti_aux
-                        gant.insert (tiempo,a_listo)
-                        q = q+1
-                        
-                    
-                    if (ti_aux == 0):
-                        tiempo = tiempo + q
-                        print (f"Tiempo {tiempo}, {a_listo.id} termino su ejecucion, se va a cola de terminados")
-                        list_termi.append(a_listo)
-                        for j in range (0,len(list_nuevo2)):  #lo saco de nuevo
-                            if (list_nuevo2[j].id == a_listo.id):
-                                list_nuevo2.pop (j)
-                                break
+                            if (ti_aux == 0): #lo mando a terminado
+                                print (f"Tiempo: {quantum}, {proceso_cargar.id} termino ejecucion")
+                                list_termi.append (proceso_cargar)   
+                                print (f"siguiente {prox.id}")
+                            else:                             
+                                proceso_cargar.ti = ti_aux
+                                print (f"Al proceso {proceso_cargar.id} le quedan {ti_aux} para terminar su ejec")
+                                list_listo.append (proceso_cargar)
+                                info=[]
+                                for i in range (0,len(list_listo)):
+                                    info.append(list_listo[i].id)
+                                print ("cola de listos", info)
+                        else:
+                            # lo corro una sola vez
+                            if (ti_aux > 0):  #si tiene al menos un tiempo a ejecutar lo ejecuto
+                                ti_aux = ti_aux - 1
+                                q=q+1
+                                gant.insert (q,proceso_cargar)
+                                
+                            if (ti_aux == 0) :
+                                print (f"Tiempo: {q}, {proceso_cargar.id} termino ejecucion")
+                                list_termi.append (proceso_cargar)   
+                                print (f"siguiente {prox.id}")
+                            else:
+                                # lo debo meter al fin de listo
+                                proceso_cargar.ti = ti_aux
+                                print (f"Al proceso {proceso_cargar.id} le quedan {ti_aux} para terminar su ejec")
+                                list_listo.append (proceso_cargar)
+                            
+                        tiempo = q 
                     else:
-                        tiempo = tiempo + q
-                        a_listo.ti = ti_aux
-                        list_listo.append (a_listo)
-                        print (f"El proceso {a_listo.id}, todavia no termino de ejecutarse, le faltan {ti_aux} unidades de tiempo")
-                    
-                    
-                
-for i in range (0,len (gant)):
-    print (gant[i].id)
-            
+                        #debo buscar uno para darle prioridad 
 
-            
+                        print (f"lala {proceso_cargar.id}")
+                        list_listo.append (proceso_cargar)
+                        info=[]
+                        for i in range (0,len(list_listo)):
+                            info.append(list_listo[i].id)
+                        print ("cola de listos", info)
+                        ## aca deberia de recorrer la cola y ver si no hay ta siguiente igual a mi q actual
+                        hago = 1
+                        print ("ya entre al else")
+                        for m in range (tiempo,acumulador_ti,2):
+                            
+                            for i in range (0,len(list_listo)):
+                                if (tiempo == list_listo[i].ta) :
+                                    hago = 0  #significa que NO HAGO lo de abajo, ya que en la cola hay alguno que tenga un ta igual mi q actual
 
-
-        
+                        if (hago == 1):
