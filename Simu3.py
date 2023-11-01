@@ -4,10 +4,11 @@ import tkinter.filedialog as filedialog
 
 
 class Particiones (object):
-    def __init__(self,tam,FI,proc_cargado) :
-        self.tam = int(tam)
-        self.FI = int(FI)
-        self.proc_cargado = str(proc_cargado)
+    def __init__(self,tam,bloq,FI) :
+        self.tam = int(tam)  #tamaño parti 
+        self.bloq = bloq # esta usada o no
+        self.FI = int(FI) # frag interna
+    
 
 class Proceso (object):
     def __init__(self,id,ta,ti,tam) :
@@ -76,12 +77,13 @@ list_ejec = []
 
 
 #memoria
-so = 100
-part1 = Particiones(60,0," ")
-part2 = Particiones(120,0," ")
-part3 = Particiones(250,0," ")
+so = 100  #sist op
+part1 = Particiones(60,0,0)
+part2 = Particiones(120,0,0)
+part3 = Particiones(250,0,0)
 mem = [so,part1,part2,part3] 
 
+mem2=[so," "," "," "]
 if bandera ==1 :
     print ("arranca ejecucion")
     while (len (list_termi) != len(list_nuevo2)):
@@ -94,15 +96,6 @@ if bandera ==1 :
                 ti = entra_a_listo.ti
                 tam= entra_a_listo.tam
                 
-                info = []
-                for i in range (0, len(list_nuevo)):
-                    info.append(list_nuevo[i].id)
-                print(f"cola de nuevos {info}")
-
-                info = []
-                for i in range (0, len(list_nuevo2)):
-                        info.append(list_nuevo2[i].id)
-                print(f"cola de nuevos2 {info}")
                 
                 proceso = Proceso(id,ta,ti,tam)
                 print (f"Tiempo: {ta}")
@@ -114,7 +107,7 @@ if bandera ==1 :
                 for i in range (0, len(list_listo)):
                     info.append(list_listo[i].id)
                 
-                print(f"Cola de listo{info}")
+                print(f"Cola de listos: {info}")
                 print ("\n")
 
                 ## aca arranca best fit
@@ -129,45 +122,58 @@ if bandera ==1 :
                 if rest1 > 0 :
                     parti.append(rest1)
                     names.append("part1")
+                    
 
                 if rest2 > 0 :
                     parti.append(rest2)
                     names.append("part2")
+                    
 
                 if rest3 > 0  :
                     parti.append(rest3)
                     names.append("part3")
+                    
 
-                if len(parti) != 0:  
-                    minimo = min(parti)  # Buscar la mínima fragmentación interna
-                    posm = parti.index(minimo)  # Obtener la posición de la mínima fragmentación interna en parti
-                    pos = names[posm]  # Obtener el nombre de la partición correspondiente
+                
 
-                    if pos == "part1":
-                        posn = 1  # Índice de la partición p1 en la lista particiones_mem
-                    elif pos == "part2":
-                        posn = 2  # Índice de la partición p2 en la lista particiones_mem
-                    else:
-                        posn = 3  # Índice de la partición p3 en la lista particiones_mem
+                 
+                minimo = min(parti)  # Buscar la mínima fragmentación interna
+                
+                posm = parti.index(minimo)  # Obtener la posición de la mínima fragmentación interna en parti
+                pos = names[posm]  # Obtener el nombre de la partición correspondiente
 
-                    if (mem[posn].proc_cargado == " "): #proceso cargado
-                        resta = (mem[posn].tam - mem[posn].tam)+ minimo
-                        mem[posn].FI = resta
-                        mem[posn].proc_cargado = id
-                        dici =  mem[posn].proc_cargado
+                if pos == "part1":
+                    posn = 1  # Índice de la partición p1 en la lista particiones_mem
+                elif pos == "part2":
+                    posn = 2  # Índice de la partición p2 en la lista particiones_mem
+                else:
+                    posn = 3  # Índice de la partición p3 en la lista particiones_mem
 
-                        print(f"El proceso de id: {id}, entro en memoria, se encuentra en la particion {posn}")
+                
+                if (mem[posn].bloq == 0): #no hay nada
+                    
+                    resta = (mem[posn].tam - mem[posn].tam)+ minimo
+                    mem[posn].FI = resta
+                    mem[posn].bloq = 1
+                    
+                    mem2.insert (posn,proceso) #lo meto en mi arreglo aux
 
-                    else:  #hay que hacer un swap
-                        a_list_susp = mem[posn].proc_cargado
-                        list_listo_susp.append (a_list_susp)
+                    print(f"El proceso de id: {id}, entro en memoria, se encuentra en la particion {posn}")
 
-                        resta = (mem[posn].tam - mem[posn].tam)+ minimo
-                        mem[posn].FI = resta
-                        mem[posn].proc_cargado = id
+                else:  #hay que hacer un swap
+                    a_list_susp = mem2.pop(posn)  #arreglo auxiliar
+                    list_listo_susp.append (a_list_susp)
 
-                        print(f"El proceso de id: {id}, entro en memoria, se encuentra en la particion {posn}, hizo un swap con {a_list_susp}")
-                        print (f"Proceso {a_list_susp} a cola de listos_suspendidos")
+                    resta = (mem[posn].tam - mem[posn].tam)+ minimo
+                    mem[posn].FI = resta
+                    mem[posn].bloq = 1
+
+                
+                    mem2.insert(posn,proceso)  #actualizo arreglo auxiliar con la info del proceso
+
+
+                    print(f"El proceso de id: {id}, entro en memoria, se encuentra en la particion {posn}, hizo un swap con {a_list_susp.id}")
+                    print (f"Proceso {a_list_susp.id} a cola de listos_suspendidos")
                     
                 ## fin best fit 
 
@@ -189,7 +195,7 @@ if bandera ==1 :
                     info.append(list_listo[i].id)
                 print (f"Cola de listos ahora: {info}")
 
-
+                
                 print (f"El proceso {entra.id} entro en ejecucion")
                 list_ejec.append (entra.id)
 
