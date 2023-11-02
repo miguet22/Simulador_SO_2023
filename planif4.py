@@ -152,4 +152,4 @@ if bandera ==1:
                                 if (tiempo == list_listo[i].ta) :
                                     hago = 0  #significa que NO HAGO lo de abajo, ya que en la cola hay alguno que tenga un ta igual mi q actual
 
-                        if (hago == 1):
+                        #if (hago == 1):  #no hay ninguno con ta = tiemp actual
