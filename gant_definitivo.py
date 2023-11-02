@@ -107,6 +107,14 @@ if bandera ==1:
                             info.append (list_listo[i].id)
                         
                         print (f"Cola de listos: {info}")
+                        info = []
+                        for i in range (0,len (list_termi)):
+                            info.append (list_termi[i].id)
+                        
+                        if (len(list_listo) < 6):
+                            band = 1 #activo bandera para poder luego cargar un proceso mas en cola de listo, respetar multiprog = 5
+                            
+                        print (f"Cola de terminados: {info}")
                         print ("\n")
                         
                     else:                             
