@@ -74,18 +74,20 @@ list_termi = []
 list_ejec = []
 gant = []
 tiempo = list_nuevo2[0].ta
+cargue = "NO"
 
 if bandera ==1:
     while (len (list_termi) != nro_proc):
         if (len(list_listo) <6):  # respetar multiprog
             if (len(list_nuevo)!=0): # lo saco de lista de nuevos
-                entra_a_listo = list_nuevo.pop(0)
-                id= entra_a_listo.id
-                ta = entra_a_listo.ta
-                ti = entra_a_listo.ti
-                tam= entra_a_listo.tam
-                proceso = Proceso(id,ta,ti,tam)
-                list_listo.append(proceso)  #aca una vez que entro a cola de listos, veo si lo ejecuto
+                if cargue == "NO" :
+                    entra_a_listo = list_nuevo.pop(0)
+                    id= entra_a_listo.id
+                    ta = entra_a_listo.ta
+                    ti = entra_a_listo.ti
+                    tam= entra_a_listo.tam
+                    proceso = Proceso(id,ta,ti,tam)
+                    list_listo.append(proceso)  #aca una vez que entro a cola de listos, veo si lo ejecuto
             
             
             proceso_cargar = list_listo.pop (0)
@@ -98,9 +100,24 @@ if bandera ==1:
                 ti_aux = ti_aux - 1
                 proceso_cargar.ti = ti_aux
                 print (f"Meto a gant: {proceso_cargar.id}")
-                gant.insert (q,proceso_cargar)
-                q=q+1 # debo ver si en este q no ingresa es TA de alguno, como para informar su arribo a cola de listo
+                gant.insert(q,proceso_cargar)
+                 # debo ver si en este q no ingresa es TA de alguno, como para informar su arribo a cola de listo
 
+                if (len(list_nuevo) > 0):
+                    if (q == list_nuevo[0].ta) : #hago append del proceso en list_nuevo y dsp el append del otro que termino su ejec pero falta ti
+                        cargue = "SI"  #bandera para no volver cargarlo arriba
+                        entra_a_listo = list_nuevo.pop(0)
+                        id= entra_a_listo.id
+                        ta = entra_a_listo.ta
+                        ti = entra_a_listo.ti
+                        tam= entra_a_listo.tam
+                        proceso = Proceso(id,ta,ti,tam)
+                        print (f"tiempo {q}, {proceso.id} entra a cola de listos")
+                        list_listo.append(proceso)  
+                    else: 
+                        cargue = "NO" #significa que no cargue nada
+                q=q+1
+            
             if (ti_aux == 0): #lo mando a terminado
                 print (f"Tiempo: {q}, {proceso_cargar.id} termino ejecucion")
                 list_termi.append (proceso_cargar)  
@@ -122,7 +139,20 @@ if bandera ==1:
                 proceso_cargar.ti = ti_aux
                 print (f"Tiempo: {q}")
                 print (f"Al proceso {proceso_cargar.id} le quedan {ti_aux} para terminar su ejec")
-                list_listo.append (proceso_cargar)
+                if (len(list_nuevo)>0):
+                    if (q == list_nuevo[0].ta) : #hago append del proceso en list_nuevo y dsp el append del otro que termino su ejec pero falta ti
+                        cargue = "SI"  #bandera para no volver cargarlo arriba
+                        entra_a_listo = list_nuevo.pop(0)
+                        id= entra_a_listo.id
+                        ta = entra_a_listo.ta
+                        ti = entra_a_listo.ti
+                        tam= entra_a_listo.tam
+                        proceso = Proceso(id,ta,ti,tam)
+                        list_listo.append(proceso)  
+                    else: 
+                        cargue = "NO" #significa que no cargue nada
+
+                list_listo.append (proceso_cargar)  #mando el proceso q termino su ejec al final de la cola
                 info=[]
                 for i in range (0,len(list_listo)):
                     info.append(list_listo[i].id)
@@ -134,6 +164,6 @@ if bandera ==1:
     for j in range (0,len (gant)):
         info.append (gant[j].id)
     print (f"GANT: {info}")
-
+    print("Santi es una kpo, y de IZQUIERDA")
 else:
     print("como hubo un problema finaliza el simulador")
