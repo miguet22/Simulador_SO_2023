@@ -75,7 +75,7 @@ gant = []
 
 if bandera ==1:
     while (len (list_termi) != len(list_nuevo2)):
-        if (len(list_listo) <6):
+        while (len(list_listo) <6):
             if (len(list_nuevo)!=0):
                 entra_a_listo = list_nuevo.pop(0)
                 id= entra_a_listo.id
@@ -113,6 +113,7 @@ if bandera ==1:
                         
                         if (len(list_listo) < 6):
                             band = 1 #activo bandera para poder luego cargar un proceso mas en cola de listo, respetar multiprog = 5
+                            # ver esto que onda como implementarlo
                             
                         print (f"Cola de terminados: {info}")
                         print ("\n")
