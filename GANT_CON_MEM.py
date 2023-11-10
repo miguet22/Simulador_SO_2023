@@ -246,3 +246,5 @@ if bandera ==1:
     print (f"GANT: {info}")
 else:
     print("como hubo un problema finaliza el simulador")
+
+    print("hola")
