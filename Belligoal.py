@@ -46,7 +46,8 @@ def Best_FIT ():
         list_listo.append (entra_a_listo)
         print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")  #info innecesaria quizas
         list_nuevo.pop(0) 
-    else: #buscar la primera libre que entre el proceso
+    else: #buscar la primera libre que entre el proceso 
+        cargado = "no"
         for i in range (1,4):
             if (mem[i].bloq == 0):#particion libre
                 resta = mem[i].tam - entra_a_listo.tam
@@ -55,16 +56,18 @@ def Best_FIT ():
                     mem[i].FI = resta
                     mem[i].bloq = 1
                     mem[i].proc = entra_a_listo.id
-                    print(f"El proceso de id: {mem[i].proc}, entro en memoria, se encuentra en la particion {posn}")
+                    print(f"El proceso de id: {mem[i].proc}, entro en memoria, se encuentra en la particion {i}")
                     list_listo.append (entra_a_listo)
                     list_nuevo.pop(0)
+                    cargado = "si"
                     break #rompo el for 
-        if (len(list_listo_susp)<3):  #salio del for, no encontro ninguna particion disponible, lo mando a list y susp
-            a_listo_susp = list_nuevo.pop(0)
-            print (f"entra a susp:{a_listo_susp.id}")
-            list_listo_susp.append (a_listo_susp)
-        else:
-            print (f"Proceso {a_listo_susp}, sigue en cola de nuevos")  #si en la lista de suspendidos hay mas de 2, va a seguir en nuevo
+        if cargado == "no" :
+            if (len(list_listo_susp)<3):  #salio del for, no encontro ninguna particion disponible, lo mando a list y susp
+                a_listo_susp = list_nuevo.pop(0)
+                print (f"entra a susp:{a_listo_susp.id}")
+                list_listo_susp.append (a_listo_susp)
+            else:
+                print (f"Proceso {a_listo_susp}, sigue en cola de nuevos")  #si en la lista de suspendidos hay mas de 2, va a seguir en nuevo
 
 class Particiones (object):
     def __init__(self,tam,bloq,FI,proc) :
@@ -80,6 +83,12 @@ class Proceso (object):
         self.ta = int (ta)
         self.ti = int (ti)
         self.tam = int (tam)
+
+class Info_irrupcion (object):
+    def __init__(self,id,ti):
+        self.id = str (id)
+        self.ti = int (ti)
+        
 
 bandera = 0
 file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
@@ -106,7 +115,7 @@ if file_path:
                 bandera = 1  # Establecer la bandera en 1 si todo está en orden
                 
                 list_nuevo = []
-                tiempo_Arribos = []
+                tiempo_irrupciones = []
                 acumulador_ti = 0
                 nro_proc = 0
                 # Recorrer el DataFrame y agregar IDs de procesos a la lista de nuevos procesos
@@ -119,7 +128,8 @@ if file_path:
                     acumulador_ti += ti
                     proceso = Proceso(id,ta,ti,tam)
                     list_nuevo.append(proceso)
-                    
+                    irrupcion = Info_irrupcion (id,ti)
+                    tiempo_irrupciones.append (irrupcion)
 
                 info = []
                 for i in range (0, len(list_nuevo)):
@@ -162,10 +172,9 @@ if bandera ==1:
             #si no entro por ningun lado sigue en nuevo
         ejecutar = list_listo[0]  #no hago pop de lista de listo por algo
         ti_aux = ejecutar.ti 
-        ti_original = ejecutar.ti
         quantum = 0  #es el quantum de round robin
         print (f"Proceso: {ejecutar.id} entra a ejecucion")
-        while (ti_aux > 0 and quantum !=2):
+        while (ti_aux > 0 and quantum !=4):
             if (len(list_nuevo)>0):  #si en el mismo tiempo que el loko entra a ejecutar, puede ser el TA de un proceso nuevo, hace lo mismo q lin 152
                 if tiempo == list_nuevo[0].ta: #arribo un nuevo proceso
                     if (len(list_listo)<4):
@@ -187,9 +196,16 @@ if bandera ==1:
         if (ti_aux==0): #el loko se termino de ejecutar, libero memoria y cola de listo
             print (f"Tiempo: {tiempo}")
             print (f"El proceso {ejecutar.id} termino de ejecutarse")
-            calculoR = tiempo - ejecutar.ta
-            acumtrp= calculoR + acumtrp  #para trp
-            acumEspera = (calculoR - ti_original) + acumEspera
+            calculoR = tiempo - ejecutar.ta  #calculo de TR
+            print (f"Tiempo de retorno del proceso {ejecutar.id} es: {calculoR}")
+            acumtrp= calculoR + acumtrp  #para TRP
+            for i in range (0,len (tiempo_irrupciones)):
+                if tiempo_irrupciones[i].id == ejecutar.id :
+                    calculoE = calculoR - tiempo_irrupciones[i].ti
+                    break
+            
+            
+            acumEspera = calculoE + acumEspera  #calculo de TEP
             list_listo.pop(0)  #aca recien hago el pop , no lo hago en la 161
             for j in range (1,4):  #busco en las particiones para liberarlo
                 
@@ -272,7 +288,8 @@ if bandera ==1:
         
 
         #tiempo de retorno y espera para cada proceso y los respectivos tiempos promedios.
-        
+    
+    print (nro_proc)
     trp = acumtrp / nro_proc 
     print (f"Tiempo de retorno promedio: {trp} unidades de tiempo")
     tep = acumEspera / nro_proc
