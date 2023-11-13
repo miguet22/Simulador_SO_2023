@@ -1,5 +1,6 @@
 import pandas as pd
 import tkinter.filedialog as filedialog
+import matplotlib.pyplot as plt
 
 def Best_FIT ():
     ## aca arranca best fit
@@ -84,7 +85,7 @@ class Proceso (object):
         self.ti = int (ti)
         self.tam = int (tam)
 
-class Info_irrupcion (object):
+class Info_irrupcion (object):  #lo creo para calcular TE
     def __init__(self,id,ti):
         self.id = str (id)
         self.ti = int (ti)
@@ -128,8 +129,8 @@ if file_path:
                     acumulador_ti += ti
                     proceso = Proceso(id,ta,ti,tam)
                     list_nuevo.append(proceso)
-                    irrupcion = Info_irrupcion (id,ti)
-                    tiempo_irrupciones.append (irrupcion)
+                    irrupcion = Info_irrupcion (id,ti)  #creo una clase con id y tiempo de irrupcion del proceso
+                    tiempo_irrupciones.append (irrupcion) # guardo la clase en un array
 
                 info = []
                 for i in range (0, len(list_nuevo)):
@@ -174,7 +175,7 @@ if bandera ==1:
         ti_aux = ejecutar.ti 
         quantum = 0  #es el quantum de round robin
         print (f"Proceso: {ejecutar.id} entra a ejecucion")
-        while (ti_aux > 0 and quantum !=4):
+        while (ti_aux > 0 and quantum !=2):
             if (len(list_nuevo)>0):  #si en el mismo tiempo que el loko entra a ejecutar, puede ser el TA de un proceso nuevo, hace lo mismo q lin 152
                 if tiempo == list_nuevo[0].ta: #arribo un nuevo proceso
                     if (len(list_listo)<4):
@@ -199,9 +200,9 @@ if bandera ==1:
             calculoR = tiempo - ejecutar.ta  #calculo de TR
             print (f"Tiempo de retorno del proceso {ejecutar.id} es: {calculoR}")
             acumtrp= calculoR + acumtrp  #para TRP
-            for i in range (0,len (tiempo_irrupciones)):
-                if tiempo_irrupciones[i].id == ejecutar.id :
-                    calculoE = calculoR - tiempo_irrupciones[i].ti
+            for i in range (0,len (tiempo_irrupciones)):  #busco en mi array de irrupciones el TI de este proceso
+                if tiempo_irrupciones[i].id == ejecutar.id :  #si los id coinciden estoy en ese proceso
+                    calculoE = calculoR - tiempo_irrupciones[i].ti  #hago el calculo de E
                     break
             
             
@@ -294,3 +295,21 @@ if bandera ==1:
     print (f"Tiempo de retorno promedio: {trp} unidades de tiempo")
     tep = acumEspera / nro_proc
     print (f"Tiempo de espera promedio: {tep} unidades de tiempo")
+    
+
+   
+
+    # Datos de ejemplo
+    categorias = ['Columna 1', 'Columna 2', 'Columna 3', 'Columna 4']
+    valores = [10, 20, 15, 25]
+
+    # Crear el gráfico de barras con 4 columnas
+    plt.bar(categorias, valores, color=['blue', 'green', 'red', 'purple'])
+
+    # Agregar etiquetas y título
+    plt.xlabel('Columnas')
+    plt.ylabel('Valores')
+    plt.title('Cuadro de 4 Columnas')
+
+    # Mostrar el gráfico
+    plt.show()
