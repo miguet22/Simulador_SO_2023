@@ -44,7 +44,6 @@ def Best_FIT ():
         mem[posn].bloq = 1
         mem[posn].proc = entra_a_listo.id
         list_listo.append (entra_a_listo)
-        print (f"tiempo {tiempo}")
         print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")
         list_nuevo.pop(0)
     else: #buscar una libre y chau
@@ -148,6 +147,7 @@ part3 = Particiones(250,0,0,"")
 mem = [so,part1,part2,part3] 
 if bandera ==1: 
     while (len(list_termi)!= nro_proc):
+        print (f"Tiempo: {tiempo}")
         if (len(list_nuevo)>0):
             if tiempo == list_nuevo[0].ta:
                 if (len(list_listo)<4):
@@ -162,7 +162,7 @@ if bandera ==1:
         ejecutar = list_listo[0]
         ti_aux = ejecutar.ti 
         quantum = 0  #es el quantum de round robin
-        print (f"Tiempo: {tiempo}, proceso: {ejecutar.id} entra a ejecucion")
+        print (f"Proceso: {ejecutar.id} entra a ejecucion")
         while (ti_aux > 0 and quantum !=2):
             if (len(list_nuevo)>0):
                 if tiempo == list_nuevo[0].ta: #arribo un nuevo proceso
@@ -183,7 +183,8 @@ if bandera ==1:
 
         
         if (ti_aux==0): #el loko se termino de ejecutar libero memoria y cola de listo
-            print (f"Tiempo {tiempo} el proceso {ejecutar.id} termino de ejecutarse")
+            print (f"Tiempo: {tiempo}")
+            print (f"El proceso {ejecutar.id} termino de ejecutarse")
             libero = list_listo.pop(0)
             for j in range (1,4):
                 
@@ -191,9 +192,9 @@ if bandera ==1:
                     mem[j].proc = ""
                     mem[j].bloq = 0
                     mem[j].FI = 0
-                    print (f"se libero particion {j}")
+                    print (f"Se libero particion {j}")
                     list_termi.append (ejecutar.id)  #lo mando a terminado
-                    print (f"lista terminados longitud: {len(list_termi)}")
+                    
                     
                     if len(list_listo_susp) > 0: # saco al primero de listo y susp_
                         sale_de_susp = list_listo_susp[0] #saco uno de listo y susp y lo mando a listo
@@ -225,9 +226,9 @@ if bandera ==1:
                         else:
                             posn = 3  # Índice de la partición p3 en la lista particiones_mem
 
-                        print (f"deberia ir a particion {posn}")
+                        
                         if (mem[posn].bloq == 0): #no hay nada  
-                            print ("entro al 230")
+                            
                             resta = (mem[posn].tam - mem[posn].tam)+ minimo
                             mem[posn].FI = resta
                             mem[posn].bloq = 1
