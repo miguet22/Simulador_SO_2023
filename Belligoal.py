@@ -37,20 +37,20 @@ def Best_FIT ():
         posn = 3  # Índice de la partición p3 en la lista particiones_mem
 
     
-    if (mem[posn].bloq == 0): #no hay nada  
+    if (mem[posn].bloq == 0): #no esta bloqueada la mejor particion
         
         resta = (mem[posn].tam - mem[posn].tam)+ minimo
         mem[posn].FI = resta
-        mem[posn].bloq = 1
-        mem[posn].proc = entra_a_listo.id
+        mem[posn].bloq = 1 
+        mem[posn].proc = entra_a_listo.id  #cargo el id del proceso cargado en esa parti, importante para el cuadro
         list_listo.append (entra_a_listo)
-        print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")
-        list_nuevo.pop(0)
-    else: #buscar una libre y chau
+        print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")  #info innecesaria quizas
+        list_nuevo.pop(0) 
+    else: #buscar la primera libre que entre el proceso
         for i in range (1,4):
             if (mem[i].bloq == 0):#particion libre
                 resta = mem[i].tam - entra_a_listo.tam
-                if resta > 0 : # puede entrar el loko
+                if resta > 0 : # puede entrar el loko porque da una fragmentacion mayor a 0
                     
                     mem[i].FI = resta
                     mem[i].bloq = 1
@@ -59,12 +59,12 @@ def Best_FIT ():
                     list_listo.append (entra_a_listo)
                     list_nuevo.pop(0)
                     break #rompo el for 
-        if (len(list_listo_susp)<3):
+        if (len(list_listo_susp)<3):  #salio del for, no encontro ninguna particion disponible, lo mando a list y susp
             a_listo_susp = list_nuevo.pop(0)
             print (f"entra a susp:{a_listo_susp.id}")
             list_listo_susp.append (a_listo_susp)
         else:
-            print (f"Proceso {a_listo_susp}, sigue en cola de nuevos")
+            print (f"Proceso {a_listo_susp}, sigue en cola de nuevos")  #si en la lista de suspendidos hay mas de 2, va a seguir en nuevo
 
 class Particiones (object):
     def __init__(self,tam,bloq,FI,proc) :
@@ -106,6 +106,7 @@ if file_path:
                 bandera = 1  # Establecer la bandera en 1 si todo está en orden
                 
                 list_nuevo = []
+                tiempo_Arribos = []
                 acumulador_ti = 0
                 nro_proc = 0
                 # Recorrer el DataFrame y agregar IDs de procesos a la lista de nuevos procesos
@@ -136,9 +137,9 @@ list_listo = []
 list_listo_susp = []
 list_termi = []
 list_ejec = []
-gant = []
 tiempo = list_nuevo[0].ta
-
+acumtrp = 0  #para trp
+acumEspera = 0 #para tiempo de espera promedio
 #memoria
 so = 100  #sist op
 part1 = Particiones(60,0,0,"")
@@ -146,25 +147,26 @@ part2 = Particiones(120,0,0,"")
 part3 = Particiones(250,0,0,"")
 mem = [so,part1,part2,part3] 
 if bandera ==1: 
-    while (len(list_termi)!= nro_proc):
-        print (f"Tiempo: {tiempo}")
-        if (len(list_nuevo)>0):
-            if tiempo == list_nuevo[0].ta:
-                if (len(list_listo)<4):
-                    entra_a_listo = list_nuevo[0]
+    while (len(list_termi)!= nro_proc):  #ciclo principal
+        print (f"Tiempo: {tiempo}")  #informe de tiempo
+        if (len(list_nuevo)>0):  #si hay alguno en la cola de nuevo
+            if tiempo == list_nuevo[0].ta:  #si su tiempo de arribo es igual a mi tiempo actual veo que onda
+                if (len(list_listo)<4):  #espacio en cola de listos
+                    entra_a_listo = list_nuevo[0] # no hago pop todavia, si el proceso puede entrar a una particion, recien hace pop en el procedimiento linea 48 y 60
                     Best_FIT ()
-                else:
-                    if (len(list_listo_susp)<3):
-                        a_listo_susp = list_nuevo.pop(0)
+                else:  #si no hay espacio en listos, a ver q onda susp
+                    if (len(list_listo_susp)<3): #hay espacio
+                        a_listo_susp = list_nuevo.pop(0)  #ahi si hago pop y lo mando a susp
                         list_listo_susp.append (a_listo_susp)
 
             #si no entro por ningun lado sigue en nuevo
-        ejecutar = list_listo[0]
+        ejecutar = list_listo[0]  #no hago pop de lista de listo por algo
         ti_aux = ejecutar.ti 
+        ti_original = ejecutar.ti
         quantum = 0  #es el quantum de round robin
         print (f"Proceso: {ejecutar.id} entra a ejecucion")
         while (ti_aux > 0 and quantum !=2):
-            if (len(list_nuevo)>0):
+            if (len(list_nuevo)>0):  #si en el mismo tiempo que el loko entra a ejecutar, puede ser el TA de un proceso nuevo, hace lo mismo q lin 152
                 if tiempo == list_nuevo[0].ta: #arribo un nuevo proceso
                     if (len(list_listo)<4):
                         entra_a_listo = list_nuevo[0]
@@ -176,19 +178,22 @@ if bandera ==1:
                             print (f"entra susp:{a_listo_susp.id}")
                             list_listo_susp.append (a_listo_susp)
             
-            quantum = quantum+1
+            quantum = quantum+1  #cosas obvias las que hago aca
             ti_aux = ti_aux - 1
             ejecutar.ti = ti_aux
             tiempo = tiempo + 1
 
         
-        if (ti_aux==0): #el loko se termino de ejecutar libero memoria y cola de listo
+        if (ti_aux==0): #el loko se termino de ejecutar, libero memoria y cola de listo
             print (f"Tiempo: {tiempo}")
             print (f"El proceso {ejecutar.id} termino de ejecutarse")
-            libero = list_listo.pop(0)
-            for j in range (1,4):
+            calculoR = tiempo - ejecutar.ta
+            acumtrp= calculoR + acumtrp  #para trp
+            acumEspera = (calculoR - ti_original) + acumEspera
+            list_listo.pop(0)  #aca recien hago el pop , no lo hago en la 161
+            for j in range (1,4):  #busco en las particiones para liberarlo
                 
-                if mem[j].proc == ejecutar.id: # libero la particion
+                if mem[j].proc == ejecutar.id: # libero la particion, pq encontro al proceso
                     mem[j].proc = ""
                     mem[j].bloq = 0
                     mem[j].FI = 0
@@ -196,10 +201,11 @@ if bandera ==1:
                     list_termi.append (ejecutar.id)  #lo mando a terminado
                     
                     
-                    if len(list_listo_susp) > 0: # saco al primero de listo y susp_
-                        sale_de_susp = list_listo_susp[0] #saco uno de listo y susp y lo mando a listo
-                        print (f"{sale_de_susp.id}, salio de list y susp")
-                        ###best fit pero jugando con lista de listos_susp
+                    if len(list_listo_susp) > 0: # me fijo si hay alguno en listo y susp
+                        sale_de_susp = list_listo_susp[0] #saco al primero de listo y susp y lo mando a listo (no hago pop tdv pq debo buscar particion)
+                        
+                        ###best fit pero jugando con lista de listos_susp <- IMPORTANTE
+
                         parti = []  # Lista para almacenar las fragmentaciones internas positivas
                         names = []  # Lista para almacenar los nombres correspondientes a las particiones
             
@@ -233,9 +239,9 @@ if bandera ==1:
                             mem[posn].FI = resta
                             mem[posn].bloq = 1
                             mem[posn].proc = sale_de_susp.id
-                            list_listo.append (sale_de_susp)#aca estan los cambios
+                            list_listo.append (sale_de_susp)#al que salio de list y susp lo mando a listo, pq encontro particion
                             print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")
-                            list_listo_susp.pop(0)
+                            list_listo_susp.pop(0)  #aca recien hago pop pq encontro particion
                         else: #buscar una libre y chau
                             for i in range (1,4):
                                 if (mem[i].bloq == 0): #particion libre
@@ -247,10 +253,10 @@ if bandera ==1:
                                         mem[i].proc = sale_de_susp.id
                                         print(f"El proceso de id: {mem[i].proc}, entro en memoria, se encuentra en la particion {i}")
                                         list_listo.append (sale_de_susp)
-                                        list_listo_susp.pop(0)  #aca estan los cambios
+                                        list_listo_susp.pop(0)  
                                         break #rompo el for 
                         #####
-                        info = []
+                        info = []  #info al pedo cpz
                         for i in range (0, len(list_listo_susp)):
                             info.append(list_listo_susp[i].id)
                         print (f"cola de listos suspendidos {info}")
@@ -264,3 +270,10 @@ if bandera ==1:
                 info.append(list_listo[i].id)
             print (f"cola de listos {info}")
         
+
+        #tiempo de retorno y espera para cada proceso y los respectivos tiempos promedios.
+        
+    trp = acumtrp / nro_proc 
+    print (f"Tiempo de retorno promedio: {trp} unidades de tiempo")
+    tep = acumEspera / nro_proc
+    print (f"Tiempo de espera promedio: {tep} unidades de tiempo")
