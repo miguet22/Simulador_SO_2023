@@ -1,7 +1,7 @@
 import pandas as pd
 import tkinter.filedialog as filedialog
-import matplotlib.pyplot as plt
 
+    
 def Best_FIT ():
     ## aca arranca best fit
     parti = []  # Lista para almacenar las fragmentaciones internas positivas
@@ -299,17 +299,4 @@ if bandera ==1:
 
    
 
-    # Datos de ejemplo
-    categorias = ['Columna 1', 'Columna 2', 'Columna 3', 'Columna 4']
-    valores = [10, 20, 15, 25]
-
-    # Crear el gráfico de barras con 4 columnas
-    plt.bar(categorias, valores, color=['blue', 'green', 'red', 'purple'])
-
-    # Agregar etiquetas y título
-    plt.xlabel('Columnas')
-    plt.ylabel('Valores')
-    plt.title('Cuadro de 4 Columnas')
-
-    # Mostrar el gráfico
-    plt.show()
+    
