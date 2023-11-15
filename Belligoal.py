@@ -1,5 +1,6 @@
 import pandas as pd
 import tkinter.filedialog as filedialog
+import time
 from tabulate import tabulate
 
 def Best_FIT ():
@@ -60,10 +61,11 @@ def Best_FIT ():
                     print(f"El proceso de id: {mem[i].proc}, entro en memoria, se encuentra en la particion {i}")
                     list_listo.append (entra_a_listo)
                     list_nuevo.pop(0)
+                    
                     cargado = "si"
                     break #rompo el for 
         if cargado == "no" :
-            if (len(list_listo_susp)<2):  #salio del for, no encontro ninguna particion disponible, lo mando a list y susp
+            if (len(list_listo_susp)<2):  #salio del for, no encontro ninguna particion disponible, lo mando a list y susp si es que hay espacio
                 a_listo_susp = list_nuevo.pop(0)
                 print (f"entra a susp:{a_listo_susp.id}")
                 list_listo_susp.append (a_listo_susp)
@@ -90,105 +92,114 @@ class Info_irrupcion (object):  #lo creo para calcular TE
         self.id = str (id)
         self.ti = int (ti)
         
+print ("Bienvenido al SIMULADOR DE PROCESOS")
 
+
+
+## aca arranca el programa realizando la carga del archvio      
 bandera = 0
-file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])  #solo busca uno que termina en .csv
 if file_path:
-        try:
-            # Cargar el archivo CSV usando pandas con el delimitador correcto (;)
-            df = pd.read_csv(file_path, delimiter=';')
-            # Ordenar el DataFrame por la columna "TA" de menor a mayor
-            df_ordenado = df.sort_values(by='TA')
+    try:
+        # Cargar el archivo CSV usando pandas con el delimitador correcto (;)
+        df = pd.read_csv(file_path, delimiter=';')
+        # Ordenar el DataFrame por la columna "TA" de menor a mayor
+        df_ordenado = df.sort_values(by='TA')
+        
+        # Contar el número de filas en el DataFrame ordenado
+        num_filas = df_ordenado.shape[0]
+        
+
+        # Verificar si el número de filas supera las 10
+        if df_ordenado['TAM'].max() > 250:
+            print("Error: Al menos un proceso tiene un tamaño mayor a  250k.")
+            bandera = 0  # Establecer la bandera en 0
+        elif num_filas > 10:
+            print("Error: El número de procesos supera los 10.")
+            bandera = 0  # Establecer la bandera en 0
+        else:
             
-            # Contar el número de filas en el DataFrame ordenado
-            num_filas = df_ordenado.shape[0]
+            bandera = 1  # Establecer la bandera en 1 si todo está en orden
             
+            list_nuevo = []
+            tiempo_irrupciones = []
+            acumulador_ti = 0
+            nro_proc = 0
+            # Recorrer el DataFrame y agregar IDs de procesos a la lista de nuevos procesos
+            for index, row in df_ordenado.iterrows():
+                nro_proc = nro_proc + 1
+                id = str(row['ID'])
+                ta = int(row['TA'])
+                ti = int(row['TI'])
+                tam = int(row['TAM'])
+                acumulador_ti += ti
+                proceso = Proceso(id,ta,ti,tam)
+                list_nuevo.append(proceso)
+                irrupcion = Info_irrupcion (id,ti)  #creo una clase con id y tiempo de irrupcion del proceso
+                tiempo_irrupciones.append (irrupcion) # guardo la clase en un array
 
-            # Verificar si el número de filas supera las 10
-            if df_ordenado['TAM'].max() > 250:
-                print("Error: Al menos un proceso tiene un tamaño mayor a  250.")
-                bandera = 0  # Establecer la bandera en 0
-            elif num_filas > 10:
-                print("Error: El número de procesos supera los 10.")
-                bandera = 0  # Establecer la bandera en 0
-            else:
-                
-                bandera = 1  # Establecer la bandera en 1 si todo está en orden
-                
-                list_nuevo = []
-                tiempo_irrupciones = []
-                acumulador_ti = 0
-                nro_proc = 0
-                # Recorrer el DataFrame y agregar IDs de procesos a la lista de nuevos procesos
-                for index, row in df_ordenado.iterrows():
-                    nro_proc = nro_proc + 1
-                    id = str(row['ID'])
-                    ta = int(row['TA'])
-                    ti = int(row['TI'])
-                    tam = int(row['TAM'])
-                    acumulador_ti += ti
-                    proceso = Proceso(id,ta,ti,tam)
-                    list_nuevo.append(proceso)
-                    irrupcion = Info_irrupcion (id,ti)  #creo una clase con id y tiempo de irrupcion del proceso
-                    tiempo_irrupciones.append (irrupcion) # guardo la clase en un array
+            
+            info = []
+            for i in range (0, len(list_nuevo)):
+                info.append(list_nuevo[i].id)
+            print (f"Tiempo 0 -> cola de nuevos: {info}")
+            print("\n")
+            tiempo = list_nuevo[0].ta  #tiempo de inicio del programa
 
-                info = []
-                for i in range (0, len(list_nuevo)):
-                    info.append(list_nuevo[i].id)
-                print (f"cola de nuevos {info}")
-                print("\n")
 
-                
-        except Exception as e:
-            print(f"Error al cargar el archivo: {e}")
-            bandera = 0  # Establecer la bandera en 0 en caso de error
+            
+    except Exception as e:
+        print(f"Error al cargar el archivo: {e}")
+        bandera = 0  # Establecer la bandera en 0 en caso de error
 
 #colas
 list_listo = []
 list_listo_susp = []
 list_termi = []
 list_ejec = []
-tiempo = list_nuevo[0].ta
+
 acumtrp = 0  #para trp
 acumEspera = 0 #para tiempo de espera promedio
+
 #memoria
 so = 100  #sist op
 part1 = Particiones(60,0,0,"")
 part2 = Particiones(120,0,0,"")
 part3 = Particiones(250,0,0,"")
-mem = [so,part1,part2,part3] 
+mem = [so,part1,part2,part3]  #array de memoria
+
 if bandera ==1: 
     while (len(list_termi)!= nro_proc):  #ciclo principal
         print (f"Tiempo: {tiempo}")  #informe de tiempo
         
-        if (len(list_nuevo)>0):  #si hay alguno en la cola de nuevo
-            while tiempo == list_nuevo[0].ta:  #si su tiempo de arribo es igual a mi tiempo actual veo que onda, con el ciclo proceso todos los procesos cuyo TA = tiempo actual
-                if (len(list_listo)<3):  #espacio en cola de listos
-                    entra_a_listo = list_nuevo[0] # no hago pop todavia, si el proceso puede entrar a una particion, recien hace pop en el procedimiento linea 48 y 60
+        if (len(list_nuevo)>0):  #si hay alguno en la cola de nuevo 
+            while tiempo == list_nuevo[0].ta:  #si su tiempo de arribo es igual a mi tiempo actual veo que hacer, con el ciclo proceso todos los procesos los cuales sus TA = tiempo actual
+                if (len(list_listo)<3):  # hay espacio en cola de listos
+                    entra_a_listo = list_nuevo[0] # no hago pop todavia, si el proceso puede entrar a una particion, recien hace pop en el procedimiento BEST FIT linea 48 y 60
                     Best_FIT ()
-                    if (len(list_nuevo)==0):  #si hizo un pop en el best fit, y nuevos quedo a 0 rompemos el ciclo de la linea 164
+                    if (len(list_nuevo)==0):  #si hizo un pop en el best fit, y nuevos quedo a 0 rompemos el ciclo de la linea 170
                         break
-                else:  #si no hay espacio en listos, a ver q onda susp
+                else:  #si no hay espacio en listos, me fijo en susp
                     if (len(list_listo_susp)<2): #hay espacio
                         a_listo_susp = list_nuevo.pop(0)  #ahi si hago pop y lo mando a susp
                         print (f"a list susp: {a_listo_susp.id}")
-                        list_listo_susp.append (a_listo_susp)
-                    else:  #si no entro x ningun lado, rompo el ciclo, dejando ese o esos procesos en nuevo
+                        list_listo_susp.append (a_listo_susp)  
+                    else:  #si no entro x ningun lado, rompo el ciclo, dejando ese o esos procesos en nuevo aun 
                         break
-        if (len (list_listo) > 0):   #si alguno en listos lo ejecutamos
-            ejecutar = list_listo[0]  #no hago pop de lista de listo por algo que solo nosotros sabemos
+        if (len (list_listo) > 0):   #si hay alguno en listos lo ejecutamos
+            ejecutar = list_listo[0]  #no hago pop de lista de listo todavia, OJO: EN LA TEORIA SI UNO SE EJECUTA SALE DE LISTO, pero a fines practicos nosotros lo mantenemos
             ti_aux = ejecutar.ti   
             quantum = 0  #es el quantum de round robin
             print (f"Proceso: {ejecutar.id} entra a ejecucion")
             while (ti_aux > 0 and quantum !=2):
-                if (len(list_nuevo)>0):  #si en el mismo tiempo que el loko entra a ejecutar, puede ser el TA de un proceso nuevo, hace lo mismo q lin 152
+                if (len(list_nuevo)>0):  #si en el mismo tiempo que el  entra a ejecutar, puede ser el TA de un proceso nuevo, hace lo mismo q lin 152
                     
                     while tiempo == list_nuevo[0].ta: #arriba uno o varios proceso
                         if (len(list_listo)<3):  
                             entra_a_listo = list_nuevo[0]
                             Best_FIT ()
-                            
-                            
+                            if (len(list_nuevo) == 0):
+                                break
                         else:
                             if (len(list_listo_susp)<2):
                                 a_listo_susp = list_nuevo.pop(0)
@@ -205,7 +216,7 @@ if bandera ==1:
                 tiempo = tiempo + 1
 
             
-            if (ti_aux==0): #el loko se termino de ejecutar, libero memoria y cola de listo
+            if (ti_aux==0): #el PROCESO se termino de ejecutar, libero memoria y cola de listo
                 print (f"Tiempo: {tiempo}")
                 print (f"El proceso {ejecutar.id} termino de ejecutarse")
                 calculoR = tiempo - ejecutar.ta  #calculo de TR
@@ -213,7 +224,7 @@ if bandera ==1:
                 acumtrp= calculoR + acumtrp  #para TRP
                 for i in range (0,len (tiempo_irrupciones)):  #busco en mi array de irrupciones el TI de este proceso
                     if tiempo_irrupciones[i].id == ejecutar.id :  #si los id coinciden estoy en ese proceso
-                        calculoE = calculoR - tiempo_irrupciones[i].ti  #hago el calculo de E
+                        calculoE = calculoR - tiempo_irrupciones[i].ti  #hago el calculo de Espera
                         break
                 
                 
@@ -232,18 +243,19 @@ if bandera ==1:
                         salio = "no"
                         susp = 0
                         nuevo = 0
-                        if (len(list_listo_susp)>0):   #si hay alguno en listo y susp, lo saco de ahi
+                        if (len(list_listo_susp)>0):   #si hay alguno en listo y susp, lo saco de ahi PRIORIDAD TOMADA X EL GRUPO
                             sale = list_listo_susp[0] #saco al primero de listo y susp y lo mando a listo (no hago pop tdv pq debo buscar particion)
                             salio = "si"
+                            
                             susp = 1
                         else:  # si no hay ninguno de ahi lo saco de nuevo
-                            if (len(list_nuevo)>0 and list_nuevo[0].ta == tiempo):
+                            if (len(list_nuevo)>0 ):
                                 sale = list_nuevo[0]
                                 salio = "si"
                                 nuevo = 1
                         
                         ###best fit pero jugando con lista de listos_susp <- IMPORTANTE
-                        if (salio == "si") :
+                        if (salio == "si") : #significa que salio o de nuevo o de listo
                             parti = []  # Lista para almacenar las fragmentaciones internas positivas
                             names = []  # Lista para almacenar los nombres correspondientes a las particiones
                 
@@ -281,14 +293,18 @@ if bandera ==1:
                                 
                                 print(f"El proceso de id: {mem[posn].proc}, entro en memoria, se encuentra en la particion {posn}")
                                 if susp == 1:
+                                    
                                     list_listo_susp.pop(0)  #aca recien hago pop pq encontro particion
                                 else:
                                     if nuevo ==1:
                                         list_nuevo.pop (0)
                             
                                 if (len(list_listo_susp)<2):  # si en mi lista de susp hay 0 o 1 proceso 
+                                    
                                     if (len(list_nuevo)>0): #si queda alguno en nuevos lo mando a listo_susp
+                                        
                                         entra_a_susp = list_nuevo.pop (0)  #aca hago el pop
+                                        print (f"entra a susp: {entra_a_susp.id}")
                                         list_listo_susp.append (entra_a_susp)
                             else: #buscar una libre y chau
                                 for i in range (1,4):
@@ -303,14 +319,16 @@ if bandera ==1:
                                             list_listo.append (sale)
 
                                             if susp == 1:
-                                                list_listo_susp.pop(0)  #aca recien hago pop pq encontro particion
+                                                print ("pop de susp")
+                                                list_listo_susp.pop(0)  #aca recien hago pop pq encontro particion , banderas para ver en cual hago el pop
                                             else:
                                                 if nuevo ==1:
                                                     list_nuevo.pop (0)
 
-                                            if (len(list_listo_susp)<2):
+                                            if (len(list_listo_susp)<2):  
                                                 if (len(list_nuevo)>0):
                                                     entra_a_susp = list_nuevo.pop (0)
+                                                    print (f"entra a list susp: {entra_a_susp.id}")
                                                     list_listo_susp.append (entra_a_susp)
                                             break #rompo el for 
 
@@ -343,5 +361,7 @@ if bandera ==1:
 
     # Imprimir el DataFrame
     print(df)
+else:
+    input("Hubo error, presione enter para finalizar...")
 
     
